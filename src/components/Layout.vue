@@ -15,10 +15,6 @@ export default defineComponent({
     <Sidebar />
     
     <div class="full-background"></div>
-    
-    <div class="content-area">
-      <router-view />
-    </div>
 
     <h1 class="chalk-title">Class Manager</h1>
   </div>
@@ -27,6 +23,9 @@ export default defineComponent({
 <style scoped>
 .layout-container {
   position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow-y: hidden;
 }
 
 .full-background {
@@ -35,19 +34,12 @@ export default defineComponent({
   left: 0;
   width: 100vw;
   height: 100vh;
-
   background-image: url('../assets/background.jpg');
   background-size: cover;      
   background-position: center; 
   background-repeat: no-repeat;
   z-index: -1;
-}
-
-.content-area {
-  position: relative;
-  z-index: 1;
-  padding: 80px 20px 20px 20px;
-  min-height: 100vh;
+  overflow-y: hidden;
 }
 
 .chalk-title {
@@ -59,5 +51,6 @@ export default defineComponent({
   z-index: 10;
   color: white;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
 }
 </style>
