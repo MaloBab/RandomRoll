@@ -8,7 +8,6 @@ const __dirname = dirname(__filename)
 
 let win = null
 
-
 function createWindow() {
   win = new BrowserWindow({
     width: 1100,
@@ -29,6 +28,11 @@ function createWindow() {
   console.log('Dev server URL:', devServerUrl)
   console.log('================================')
 
+  if (app.isPackaged) {
+    win.loadFile(path.join(__dirname, 'dist/index.html'))
+  } else {
+    win.loadURL(devServerUrl)
+  }
 
   win.on('closed', () => {
     win = null
@@ -41,10 +45,8 @@ app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) createWindow()
 })
 
-
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
 })
-
