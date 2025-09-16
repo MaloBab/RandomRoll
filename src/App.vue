@@ -1,8 +1,19 @@
-<script setup lang="ts">
-  import Layout from "./components/Layout.vue"
-</script>
-
 <template>
-<Layout/>
+  <div id="app">
+    <Layout>
+      <router-view />
+    </Layout>
+  </div>
 </template>
 
+<script lang="ts">
+import { defineComponent } from 'vue'
+import Layout from './components/Layout.vue'
+
+export default defineComponent({
+  name: 'App',
+  components: {
+    Layout
+  }
+})
+</script>
