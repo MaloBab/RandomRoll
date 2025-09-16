@@ -1,0 +1,44 @@
+{
+  "name": "randomroll",
+  "version": "1.0.0",
+  "description": "Projet Vue 3 + Vite + TypeScript + Electron",
+  "author": "Malo Babinot",
+  "license": "MIT",
+  "type": "module",
+  "main": "electron-main.js",
+  "scripts": {
+    "dev": "vite",
+    "electron": "electron .",
+    "dev:electron": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && npm run electron\"",
+    "build": "vite build",
+    "build:electron": "npm run build && electron-builder",
+    "start": "electron .",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "vue": "^3.4.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "concurrently": "^8.2.0",
+    "electron": "^38.1.0",
+    "electron-builder": "^24.13.3",
+    "typescript": "^5.2.2",
+    "vite": "^6.3.6",
+    "wait-on": "^7.0.1",
+    "eslint": "^8.50.0",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "@typescript-eslint/parser": "^6.10.0"
+  },
+  "build": {
+    "appId": "com.malo.randomroll",
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    }
+  }
+}
