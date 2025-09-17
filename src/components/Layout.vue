@@ -25,7 +25,7 @@ export default defineComponent({
   position: relative;
   width: 100%;
   height: 100vh;
-  overflow-y: hidden;
+  overflow: hidden;
 }
 
 .full-background {
@@ -35,11 +35,10 @@ export default defineComponent({
   width: 100vw;
   height: 100vh;
   background-image: url('../assets/background.jpg');
-  background-size: cover;      
-  background-position: center; 
-  background-repeat: no-repeat;
+  background-size: 100% 115%;
+  background-position: center;
+  background-repeat: no-repeat;  
   z-index: -1;
-  overflow-y: hidden;
 }
 
 .chalk-title {
@@ -52,5 +51,21 @@ export default defineComponent({
   color: white;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
   pointer-events: none;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+@media screen and (min-width: 1920px) {
+  .full-background {
+    background-size: cover;
+    transform: scale(1);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .full-background {
+    background-size: cover;
+  }
 }
 </style>

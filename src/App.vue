@@ -36,7 +36,7 @@ export default defineComponent({
   width: 100%;
   height: 100%;
   z-index: 50; /* Au-dessus du layout mais sous la sidebar */
-  pointer-events: none; /* Permet aux clics de passer à travers quand vide */
+  pointer-events: none; 
 }
 
 .router-overlay > * {

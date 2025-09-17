@@ -1,10 +1,8 @@
 <template>
   <div class="page-container">
     <div class="main-content">
-      <!-- Titre principal -->
       <h1 class="main-title chalk-title">Gestion des Classes</h1>
       
-      <!-- Bouton d'ajout principal -->
       <div class="add-section">
         <button 
           class="add-class-btn chalk-text" 
@@ -16,83 +14,90 @@
         </button>
       </div>
       
-      <!-- Liste des classes -->
-      <div v-if="classes.length > 0" class="classes-grid">
-        <div 
-          v-for="(classe, index) in classes" 
-          :key="classe.id"
-          class="class-card"
-          :class="{ 'animating': animatingCards.includes(classe.id) }"
-        >
-          <!-- En-tête de la carte -->
-          <div class="class-header">
-            <h3 class="class-name chalk-text">{{ classe.nom }}</h3>
-            <div class="class-info">
-              <span class="student-count chalk-text">
-                👥 {{ classe.eleves.length }} élève{{ classe.eleves.length > 1 ? 's' : '' }}
-              </span>
+      <!-- Zone scrollable pour les classes -->
+      <div class="classes-scroll-container custom-scroll">
+        <!-- Liste des classes -->
+        <div v-if="classes.length > 0" class="classes-grid">
+          <div 
+            v-for="classe in classes" 
+            :key="classe.id"
+            class="class-card"
+            :class="{ 'animating': animatingCards.includes(classe.id) }"
+          >
+            <!-- En-tête de la carte -->
+            <div class="class-header">
+              <h3 class="class-name chalk-text">{{ classe.nom }}</h3>
+              <div class="class-info">
+                <span class="student-count chalk-text">
+                  👥 {{ classe.eleves.length }} élève{{ classe.eleves.length > 1 ? 's' : '' }}
+                </span>
+              </div>
             </div>
-          </div>
-          
-          <!-- Liste des élèves (aperçu) -->
-          <div class="students-preview">
-            <div v-if="classe.eleves.length > 0" class="students-list">
-              <span 
-                v-for="(eleve, idx) in classe.eleves.slice(0, 3)" 
-                :key="idx"
-                class="student-tag chalk-text"
+            
+            <!-- Liste des élèves (aperçu) -->
+            <div class="students-preview">
+              <div v-if="classe.eleves.length > 0" class="students-list">
+                <span 
+                  v-for="(eleve, idx) in classe.eleves.slice(0, 3)" 
+                  :key="idx"
+                  class="student-tag chalk-text"
+                  :title="`Pondération: ${eleve.ponderation || 1}`"
+                >
+                  {{ eleve.nom }}
+                  <span class="student-weight" v-if="eleve.ponderation !== 1">
+                    ({{ eleve.ponderation }})
+                  </span>
+                </span>
+                <span 
+                  v-if="classe.eleves.length > 3" 
+                  class="student-tag more chalk-text"
+                >
+                  +{{ classe.eleves.length - 3 }}
+                </span>
+              </div>
+              <div v-else class="no-students chalk-text">
+                Aucun élève pour le moment
+              </div>
+            </div>
+            
+            <!-- Boutons d'action -->
+            <div class="class-actions">
+              <button 
+                class="action-btn fill-btn chalk-text" 
+                @click="openFillModal(classe)"
+                :title="`Remplir la classe ${classe.nom}`"
               >
-                {{ eleve }}
-              </span>
-              <span 
-                v-if="classe.eleves.length > 3" 
-                class="student-tag more chalk-text"
+                <span class="btn-icon">📝</span>
+                Remplir
+              </button>
+              <button 
+                class="action-btn edit-btn chalk-text"
+                @click="editClass(classe)"
+                :title="`Modifier ${classe.nom}`"
               >
-                +{{ classe.eleves.length - 3 }}
-              </span>
+                <span class="btn-icon">✏️</span>
+                Modifier
+              </button>
+              <button 
+                class="action-btn delete-btn chalk-text" 
+                @click="confirmDelete(classe)"
+                :title="`Supprimer ${classe.nom}`"
+              >
+                <span class="btn-icon">🗑️</span>
+                Supprimer
+              </button>
             </div>
-            <div v-else class="no-students chalk-text">
-              Aucun élève pour le moment
-            </div>
-          </div>
-          
-          <!-- Boutons d'action -->
-          <div class="class-actions">
-            <button 
-              class="action-btn fill-btn chalk-text" 
-              @click="openFillModal(classe)"
-              :title="`Remplir la classe ${classe.nom}`"
-            >
-              <span class="btn-icon">📝</span>
-              Remplir
-            </button>
-            <button 
-              class="action-btn edit-btn chalk-text"
-              @click="editClass(classe)"
-              :title="`Modifier ${classe.nom}`"
-            >
-              <span class="btn-icon">✏️</span>
-              Modifier
-            </button>
-            <button 
-              class="action-btn delete-btn chalk-text" 
-              @click="confirmDelete(classe)"
-              :title="`Supprimer ${classe.nom}`"
-            >
-              <span class="btn-icon">🗑️</span>
-              Supprimer
-            </button>
           </div>
         </div>
-      </div>
-      
-      <!-- État vide -->
-      <div v-else class="empty-state">
-        <div class="empty-illustration">📚</div>
-        <h3 class="empty-title chalk-text">Aucune classe créée</h3>
-        <p class="empty-description chalk-text">
-          Commencez par ajouter votre première classe pour organiser vos élèves
-        </p>
+        
+        <!-- État vide -->
+        <div v-else class="empty-state">
+          <div class="empty-illustration">📚</div>
+          <h3 class="empty-title chalk-text">Aucune classe créée</h3>
+          <p class="empty-description chalk-text">
+            Commencez par ajouter votre première classe pour organiser vos élèves
+          </p>
+        </div>
       </div>
     </div>
     
@@ -140,12 +145,13 @@
       <div class="modal-content large" @click.stop>
         <div class="modal-header">
           <h3 class="modal-title chalk-text">
-            Remplir la classe "{{ fillModal.classe?.nom }}"
+            Remplir la classe <span class="classe-name"> {{ fillModal.classe?.nom }}</span>
           </h3>
+          
           <button class="modal-close" @click="closeFillModal">×</button>
         </div>
         
-        <div class="modal-body">
+        <div class="modal-body custom-scroll">
           <div class="form-group">
             <label class="form-label chalk-text">
               Liste des élèves (un par ligne)
@@ -153,12 +159,12 @@
             <textarea 
               v-model="studentsText" 
               class="form-textarea chalk-text"
-              placeholder="Pierre Martin&#10;Marie Dupont&#10;Jean Durand&#10;..."
-              rows="10"
+              placeholder="Prénom1  Nom1&#10;Prénom2  Nom2&#10;Prénom3  Nom3&#10;..."
+              rows="12"
               ref="studentsTextarea"
             ></textarea>
             <div class="form-hint chalk-text">
-              {{ studentsText.split('\n').filter(s => s.trim()).length }} élève(s) détecté(s)
+              {{ parsedStudents.length }} élève(s) détecté(s)
             </div>
           </div>
         </div>
@@ -170,8 +176,9 @@
           <button 
             class="modal-btn save-btn chalk-text" 
             @click="saveStudents"
+            :disabled="parsedStudents.length === 0"
           >
-            Enregistrer
+            Enregistrer {{ parsedStudents.length }} élève(s)
           </button>
         </div>
       </div>
@@ -215,12 +222,20 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, nextTick, onMounted } from 'vue'
+import { defineComponent, ref, nextTick, onMounted, computed } from 'vue'
+
+interface Eleve {
+  nom: string
+  ponderation: number
+  selections: number
+  dateCreation: Date
+  [key: string]: any // Permet d'ajouter des propriétés arbitraires
+}
 
 interface Classe {
   id: string
   nom: string
-  eleves: string[]
+  eleves: Eleve[]
   dateCreation: Date
 }
 
@@ -248,13 +263,54 @@ export default defineComponent({
       classe: null as Classe | null
     })
     
+    // Parser le texte des élèves
+    const parsedStudents = computed(() => {
+      if (!studentsText.value) return []
+      
+      return studentsText.value
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0)
+        .map(line => {
+          const parts = line.split(':')
+          const nom = parts[0]?.trim()
+          
+          // Validation du nom
+          if (!nom) {
+            return null
+          }
+          
+          const ponderation = parts[1] ? parseFloat(parts[1].trim()) : 1
+          
+          return {
+            nom,
+            ponderation: isNaN(ponderation) ? 1 : Math.max(0.1, ponderation),
+            selections: 0,
+            dateCreation: new Date()
+          }
+        })
+        .filter(student => student !== null) as Eleve[]
+    })
+    
+    // Pondération moyenne
+    const averagePonderation = computed(() => {
+      if (parsedStudents.value.length === 0) return 1
+      return parsedStudents.value.reduce((sum, s) => sum + s.ponderation, 0) / parsedStudents.value.length
+    })
+    
     // Charger les classes depuis le localStorage
     const loadClasses = () => {
       const savedClasses = localStorage.getItem('classes')
       if (savedClasses) {
         classes.value = JSON.parse(savedClasses).map((c: any) => ({
           ...c,
-          dateCreation: new Date(c.dateCreation)
+          dateCreation: new Date(c.dateCreation),
+          eleves: c.eleves.map((e: any) => ({
+            ...e,
+            dateCreation: new Date(e.dateCreation || new Date()),
+            ponderation: e.ponderation || 1,
+            selections: e.selections || 0
+          }))
         }))
       }
     }
@@ -262,6 +318,67 @@ export default defineComponent({
     // Sauvegarder les classes dans le localStorage
     const saveClasses = () => {
       localStorage.setItem('classes', JSON.stringify(classes.value))
+    }
+    
+    // Fonction de tirage pondéré
+    const weightedRandomSelection = (students: Eleve[]): Eleve => {
+      if (students.length === 0) {
+        throw new Error('Cannot select from empty student list')
+      }
+      
+      // Inverser la pondération : plus on a été sélectionné, moins on a de chances
+      const weights = students.map(student => {
+        const selections = student.selections || 0
+        const ponderation = student.ponderation || 1
+        const selectionPenalty = Math.max(0.1, 1 - (selections * 0.1))
+        return ponderation * selectionPenalty
+      })
+      
+      const totalWeight = weights.reduce((sum, weight) => sum + weight, 0)
+      let random = Math.random() * totalWeight
+      
+      for (let i = 0; i < students.length; i++) {
+        const weight = weights[i]
+        const student = students[i]
+        if (weight !== undefined && student !== undefined) {
+          random -= weight
+          if (random <= 0) {
+            return student
+          }
+        }
+      }
+      
+      // Fallback sécurisé - on sait que students n'est pas vide grâce à la vérification en début
+      const lastStudent = students[students.length - 1]
+      if (lastStudent === undefined) {
+        throw new Error('Unexpected undefined student')
+      }
+      return lastStudent
+    }
+    
+    // Tirer un élève au sort
+    const rollStudent = (classe: Classe) => {
+      if (classe.eleves.length === 0) return
+      
+      const selectedStudent = weightedRandomSelection(classe.eleves)
+      selectedStudent.selections = (selectedStudent.selections || 0) + 1
+      
+      
+      saveClasses()
+    }
+    
+    // Obtenir la classe CSS pour la pondération
+    const getPonderationClass = (ponderation: number) => {
+      if (ponderation < 0.5) return 'low-weight'
+      if (ponderation > 1.5) return 'high-weight'
+      return 'normal-weight'
+    }
+    
+    // Obtenir le texte descriptif de la pondération
+    const getPonderationText = (ponderation: number) => {
+      if (ponderation < 0.5) return 'Moins de chances'
+      if (ponderation > 1.5) return 'Plus de chances'
+      return 'Chances normales'
     }
     
     // Ajouter/Modifier une classe
@@ -314,7 +431,12 @@ export default defineComponent({
     const openFillModal = (classe: Classe) => {
       fillModal.value.classe = classe
       fillModal.value.show = true
-      studentsText.value = classe.eleves.join('\n')
+      // Formatter les élèves existants pour l'édition
+      studentsText.value = classe.eleves.map(eleve => {
+        return eleve.ponderation !== 1 
+          ? `${eleve.nom}:${eleve.ponderation}`
+          : eleve.nom
+      }).join('\n')
       nextTick(() => {
         studentsTextarea.value?.focus()
       })
@@ -329,13 +451,18 @@ export default defineComponent({
     
     // Sauvegarder les élèves
     const saveStudents = () => {
-      if (fillModal.value.classe) {
-        const students = studentsText.value
-          .split('\n')
-          .map(s => s.trim())
-          .filter(s => s.length > 0)
+      if (fillModal.value.classe && parsedStudents.value.length > 0) {
+        // Conserver les statistiques des élèves existants
+        const existingStudents = fillModal.value.classe.eleves
+        const updatedStudents = parsedStudents.value.map(newStudent => {
+          const existing = existingStudents.find(e => e.nom === newStudent.nom)
+          return existing ? {
+            ...existing,
+            ponderation: newStudent.ponderation // Mettre à jour la pondération
+          } : newStudent
+        })
         
-        fillModal.value.classe.eleves = students
+        fillModal.value.classe.eleves = updatedStudents
         saveClasses()
       }
       closeFillModal()
@@ -385,6 +512,11 @@ export default defineComponent({
       studentsText,
       studentsTextarea,
       deleteModal,
+      parsedStudents,
+      averagePonderation,
+      rollStudent,
+      getPonderationClass,
+      getPonderationText,
       saveClass,
       closeModal,
       editClass,
@@ -402,41 +534,47 @@ export default defineComponent({
 <style scoped>
 .page-container {
   position: relative;
-  width: 100%;
+  width: 100vw;
   height: 100vh;
   padding: 20px;
   box-sizing: border-box;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .main-content {
-  max-width: 1200px;
+  max-width: 1600px;
   margin: 0 auto;
-  padding-top: 100px; /* Pour laisser place au titre du layout */
+  padding-top: 80px; 
+  height: calc(100vh - 60px); 
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 
 .main-title {
   text-align: center;
   font-size: 3rem;
-  margin-bottom: 40px;
+  margin-bottom: 20px; 
   text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);
+  flex-shrink: 0; 
 }
 
 .add-section {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
+  flex-shrink: 0; 
 }
 
 .add-class-btn {
-  background: linear-gradient(135deg, #27ae60, #2ecc71);
-  border: 3px solid rgba(255, 255, 255, 0.3);
+  background: linear-gradient(90deg, #3ad613, #13b940);
+  border: #27ae60;
   border-radius: 15px;
-  padding: 15px 30px;
-  font-size: 1.3rem;
+  padding: 9px 18px;
+  font-size: 1.2rem;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 6px 20px rgba(39, 174, 96, 0.3);
-  display: inline-flex;
+  display: inline-flex; 
   align-items: center;
   gap: 10px;
 }
@@ -458,17 +596,50 @@ export default defineComponent({
 }
 
 .btn-icon {
-  font-size: 1.2em;
+  font-size: 1.1em;
+}
+
+.classes-scroll-container {
+  flex: 1;
+  overflow-y: auto; 
+  overflow-x: hidden; 
+  padding-right: 10px; 
+  margin-right: -10px; 
+}
+
+/* Style personnalisé pour la scrollbar */
+.custom-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+.custom-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scroll::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .classes-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 25px;
-  margin-bottom: 40px;
+  padding-bottom: 5px;
 }
 
 .class-card {
+  margin-top: 5px;
   background: rgba(0, 0, 0, 0.8);
   border: 3px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
@@ -551,6 +722,14 @@ export default defineComponent({
   padding: 4px 10px;
   font-size: 0.8rem;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.student-weight {
+  font-size: 0.7rem;
+  opacity: 0.8;
 }
 
 .student-tag.more {
@@ -567,7 +746,7 @@ export default defineComponent({
 
 .class-actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -575,15 +754,32 @@ export default defineComponent({
   flex: 1;
   border: 2px solid transparent;
   border-radius: 10px;
-  padding: 10px 15px;
-  font-size: 0.9rem;
+  padding: 8px 12px;
+  font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-width: 80px;
+  gap: 4px;
+  min-width: 70px;
+}
+
+.roll-btn {
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+  border-color: rgba(155, 89, 182, 0.3);
+}
+
+.roll-btn:hover:not(:disabled) {
+  border-color: rgba(155, 89, 182, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(155, 89, 182, 0.3);
+}
+
+.roll-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .fill-btn {
@@ -644,7 +840,6 @@ export default defineComponent({
   line-height: 1.5;
 }
 
-/* Styles des modals */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -672,7 +867,7 @@ export default defineComponent({
 }
 
 .modal-content.large {
-  max-width: 700px;
+  max-width: 800px;
 }
 
 @keyframes modalAppear {
@@ -703,6 +898,11 @@ export default defineComponent({
   font-size: 1.4rem;
 }
 
+.classe-name {
+  font-size: 2rem;
+  color: #159c56;
+}
+
 .modal-close {
   background: none;
   border: none;
@@ -725,10 +925,8 @@ export default defineComponent({
 
 .modal-body {
   padding: 25px;
-}
-
-.form-group {
-  margin-bottom: 20px;
+  max-height: 60vh;
+  overflow-y: auto;
 }
 
 .form-label {
@@ -769,6 +967,100 @@ export default defineComponent({
   margin-top: 8px;
   font-size: 0.9rem;
   opacity: 0.7;
+}
+
+.students-preview-modal {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.students-preview-modal h4 {
+  margin: 0 0 15px 0;
+  font-size: 1.1rem;
+}
+
+.preview-students-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.preview-student {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.preview-student:last-child {
+  border-bottom: none;
+}
+
+.student-name {
+  font-weight: bold;
+}
+
+.student-pond {
+  font-size: 0.85rem;
+  text-align: right;
+}
+
+.student-pond.low-weight {
+  color: #e74c3c;
+}
+
+.student-pond.high-weight {
+  color: #27ae60;
+}
+
+.student-pond.normal-weight {
+  color: #95a5a6;
+}
+
+.roll-result {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.selected-student {
+  background: rgba(155, 89, 182, 0.1);
+  border: 3px solid rgba(155, 89, 182, 0.3);
+  border-radius: 20px;
+  padding: 30px;
+  animation: studentAppear 0.5s ease-out;
+}
+
+@keyframes studentAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.student-avatar {
+  font-size: 4rem;
+  margin-bottom: 20px;
+}
+
+.selected-student .student-name {
+  margin: 0 0 20px 0;
+  font-size: 2.5rem;
+  color: #ecf0f1;
+}
+
+.student-details p {
+  margin: 5px 0;
+  font-size: 1.1rem;
+  opacity: 0.8;
 }
 
 .warning-text {
